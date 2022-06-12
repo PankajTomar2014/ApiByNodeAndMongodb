@@ -1,25 +1,49 @@
 const express = require('express');
+const authToken = require('../middleware/getAuthToken'); 
+
 const StudentScheema = require('../Modals/StudentScheema');
 
 const StudentRouter = express.Router();
 
 StudentRouter.post('/createStudent',async(request,response)=>{
     try{
-        const newStudent = StudentScheema(request.body);
-        console.log("Postman Data==>",newStudent);
-        const createdStudent = await newStudent.save();
+        const newStudent = new StudentScheema({
+                name:request.body.name,
+                email:request.body.email,
+                phone:request.body.phone,
+                age:request.body.age,                
+        });       
+  
 
-        const createdSuccess = {
+
+        var createdStudent = await newStudent.save();  
+        var token='';
+        var data={
+            "email": createdStudent.email
+        }
+        data.tomar="jjjjjjjj"
+        
+        authToken.genrateAuthToken(createdStudent._id, async(data)=>{
+            token = data;
+            console.log('------------------data', data)
+        })
+
+                    console.log('------------------createdStudent', data)
+
+        var createdSuccess = {
             message:"Student created successfully",
-            data:createdStudent,
+            data:Object.assign(data,{token:token}),
             status:true
         };
 
+       
+        
+
         response.status(201).send(createdSuccess);       
     }catch(error){
-        // console.log("error==>",error);
+        console.log("error==>",error.message);
         const createdFailed = {
-            message:"Email or phone is already exist",
+            message:error.message,
             data:[],
             status:false
         };
@@ -30,7 +54,7 @@ StudentRouter.post('/createStudent',async(request,response)=>{
 StudentRouter.get('/getAllStudents',async(request,response)=>{
     try{       
         const getAllStudents = await StudentScheema.find();
-        if(getAllStudents !=null ){
+        if(getAllStudents !=null ){           
             const getAllStudentsSuccess = {
                 message:"Student listed success", 
                 status:true, 

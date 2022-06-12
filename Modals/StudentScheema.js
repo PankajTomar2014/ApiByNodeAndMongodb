@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+// const jwt = require('jsonwebtoken');
+// console.log("jsonwebtoken Data==>",jwt);
 
 const studentScheema = new mongoose.Schema({
 	name: {
@@ -27,8 +29,38 @@ const studentScheema = new mongoose.Schema({
         required:true,        
         min:3,
        },
+    // token:{
+    //     type:String,
+    //     required:true,
+    // }
 	
 });
+
+
+// genrating token
+// module.export = function genrateAuthToken(request, callBack){
+//     try{
+//         const token = jwt.sign({ _id:this._id},"mynameispankajtomarandhowareyou");
+//         callBack(token);
+//     }catch(error){
+//         console.log("token Genrated Error==>",error);
+//         res.send("token Genrated Error==>",error,message)
+
+//     }
+// }
+// studentScheema.method().genrateAuthToken = async function(){
+    // try{
+    //     console.log("token id==>",studentScheema.method);
+    //     const token = jwt.sign({ _id:this._id},"mynameispankajtomarandhowareyou");
+    //     console.log("token Genrated==>",token);
+
+    // }catch(error){
+    //     console.log("token Genrated Error==>",error);
+    //     res.send("token Genrated Error==>",error,message)
+
+    // }
+
+// }
 
 // we will create a new collection
 
