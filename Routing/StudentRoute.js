@@ -5,13 +5,13 @@ const StudentScheema = require('../Modals/StudentScheema');
 
 const StudentRouter = express.Router();
 
-StudentRouter.post('/createStudent',async(request,response)=>{
+StudentRouter.post('/signup',async(request,response)=>{
     try{
         const newStudent = new StudentScheema({
                 name:request.body.name,
                 email:request.body.email,
                 phone:request.body.phone,
-                age:request.body.age,                
+                age:request.body.age,
         });       
   
 
@@ -19,10 +19,13 @@ StudentRouter.post('/createStudent',async(request,response)=>{
         var createdStudent = await newStudent.save();  
         var token='';
         var data={
-            "email": createdStudent.email
+            "email": createdStudent.email,
+            "name":createdStudent.name,
+            "age":createdStudent.age,
+            "phone":createdStudent.phone,
+            "_id":createdStudent._id,
         }
-        data.tomar="jjjjjjjj"
-        
+         
         authToken.genrateAuthToken(createdStudent._id, async(data)=>{
             token = data;
             console.log('------------------data', data)
@@ -31,7 +34,7 @@ StudentRouter.post('/createStudent',async(request,response)=>{
                     console.log('------------------createdStudent', data)
 
         var createdSuccess = {
-            message:"Student created successfully",
+            message:"Signup successfully",
             data:Object.assign(data,{token:token}),
             status:true
         };
@@ -41,9 +44,14 @@ StudentRouter.post('/createStudent',async(request,response)=>{
 
         response.status(201).send(createdSuccess);       
     }catch(error){
-        console.log("error==>",error.message);
+
+        const data = {
+            code: error.code,
+            message:error.message
+        }
+        console.log("error==>",data);
         const createdFailed = {
-            message:error.message,
+            message:error.code =='11000' ? "email or phone is already exist" :error.message,
             data:[],
             status:false
         };
@@ -58,7 +66,8 @@ StudentRouter.get('/getAllStudents',async(request,response)=>{
             const getAllStudentsSuccess = {
                 message:"Student listed success", 
                 status:true, 
-                data:[getAllStudents]
+                dataLength:getAllStudents.length,
+                data:getAllStudents,
                 
             };
     
@@ -149,5 +158,8 @@ StudentRouter.put('/updateStudent/:id',async(request,response)=>{
         response.status(500).send(updateFailed);   
     }
 });
+
+
+
 
 module.exports = StudentRouter;
