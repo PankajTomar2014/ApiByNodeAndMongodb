@@ -1,153 +1,216 @@
-const express = require('express');
-const authToken = require('../middleware/getAuthToken'); 
+const express = require("express");
+const authToken = require("../middleware/getAuthToken");
 
-const StudentScheema = require('../Modals/StudentScheema');
+const StudentScheema = require("../Modals/StudentScheema");
 
 const StudentRouter = express.Router();
 
-StudentRouter.post('/createStudent',async(request,response)=>{
-    try{
-        const newStudent = new StudentScheema({
-                name:request.body.name,
-                email:request.body.email,
-                phone:request.body.phone,
-                age:request.body.age,                
-        });       
-  
+StudentRouter.post("/signin", async (request, response) => {
+  try {
+    const { email, password } = request.body;
+    console.log("------------------request", request.body);
 
+    const loginData = await StudentScheema.findOne({
+      email,
+      // password: password,
+    });
+    console.log("------------------loginData", loginData);
 
-        var createdStudent = await newStudent.save();  
-        var token='';
-        var data={
-            "email": createdStudent.email
-        }
-        data.tomar="jjjjjjjj"
-        
-        authToken.genrateAuthToken(createdStudent._id, async(data)=>{
-            token = data;
-            console.log('------------------data', data)
-        })
-
-                    console.log('------------------createdStudent', data)
-
-        var createdSuccess = {
-            message:"Student created successfully",
-            data:Object.assign(data,{token:token}),
-            status:true
-        };
-
-       
-        
-
-        response.status(201).send(createdSuccess);       
-    }catch(error){
-        console.log("error==>",error.message);
-        const createdFailed = {
-            message:error.message,
-            data:[],
-            status:false
-        };
-        response.status(400).send(createdFailed);   
+    if (loginData) {
+      response.status(200).json({
+        message: "Login successful",
+        data: loginData,
+        status: true,
+      });
+    } else {
+      response.status(401).json({
+        message: "Invalid credentials",
+        status: false,
+      });
     }
+  } catch (error) {
+    console.error("Error during login:", error);
+
+    const createdFailed = {
+      message: "Internal server error",
+      data: [],
+      status: false,
+    };
+    response.status(500).json(createdFailed);
+  }
+});
+// StudentRouter.post("/signin", async (request, response) => {
+//   try {
+//     const { email, password } = request.body;
+//     console.log("------------------request", request.body);
+//     const loginData = await StudentScheema.findOne({
+//       email: email,
+//       password: password,
+//     });
+//     console.log("------------------loginData", loginData);
+//   } catch (error) {
+//     const data = {
+//       // code: error.code,
+//       message: error.message,
+//     };
+//     console.log("error==>", error.message);
+//     const createdFailed = {
+//       message: error.message,
+//       data: [],
+//       status: false,
+//     };
+//     response.status(400).send(createdFailed);
+//   }
+// });
+
+StudentRouter.post("/signup", async (request, response) => {
+  try {
+    const newStudent = new StudentScheema({
+      name: request.body.name,
+      email: request.body.email,
+      phone: request.body.phone,
+      age: request.body.age,
+    });
+
+    var createdStudent = await newStudent.save();
+    var token = "";
+    var data = {
+      email: createdStudent.email,
+      name: createdStudent.name,
+      age: createdStudent.age,
+      phone: createdStudent.phone,
+      _id: createdStudent._id,
+    };
+
+    authToken.genrateAuthToken(createdStudent._id, async (data) => {
+      token = data;
+      console.log("------------------data", data);
+    });
+
+    console.log("------------------createdStudent", data);
+
+    var createdSuccess = {
+      message: "Signup successfully",
+      data: Object.assign(data, { token: token }),
+      status: true,
+    };
+
+    response.status(201).send(createdSuccess);
+  } catch (error) {
+    const data = {
+      code: error.code,
+      message: error.message,
+    };
+    console.log("error==>", data);
+    const createdFailed = {
+      message:
+        error.code == "11000"
+          ? "email or phone is already exist"
+          : error.message,
+      data: [],
+      status: false,
+    };
+    response.status(400).send(createdFailed);
+  }
 });
 
-StudentRouter.get('/getAllStudents',async(request,response)=>{
-    try{       
-        const getAllStudents = await StudentScheema.find();
-        if(getAllStudents !=null ){           
-            const getAllStudentsSuccess = {
-                message:"Student listed success", 
-                status:true, 
-                data:[getAllStudents]
-                
-            };
-    
-            response.status(201).send(getAllStudentsSuccess);  
-        }else{
-            const getAllStudentsFailed = {
-                message:"Student listed falied",  
-                data:null,             
-                status:false
-            };
-    
-    
-            response.status(400).send(getAllStudentsFailed); 
-        }
+StudentRouter.get("/getAllStudents", async (request, response) => {
+  try {
+    const getAllStudents = await StudentScheema.find();
+    if (getAllStudents != null) {
+      const getAllStudentsSuccess = {
+        message: "Student listed success",
+        status: true,
+        dataLength: getAllStudents.length,
+        data: getAllStudents,
+      };
 
-             
-    }catch(error){
-        const getAllStudentsFailed = {
-            message:error.message,  
-            data:null,             
-            status:false
-        };
+      response.status(201).send(getAllStudentsSuccess);
+    } else {
+      const getAllStudentsFailed = {
+        message: "Student listed falied",
+        data: null,
+        status: false,
+      };
 
-
-        response.status(400).send(getAllStudentsFailed);   
+      response.status(400).send(getAllStudentsFailed);
     }
+  } catch (error) {
+    const getAllStudentsFailed = {
+      message: error.message,
+      data: null,
+      status: false,
+    };
+
+    response.status(400).send(getAllStudentsFailed);
+  }
 });
-StudentRouter.delete('/deleteStudent/:id',async(request,response)=>{
-    try{
-        const id  = request.params.id;
-        console.log("Postman Data==>",id);
-        const deletedStudent = await StudentScheema.findByIdAndDelete(id);        
-        if(!id || deletedStudent === null ){
-            const deletedFailed = {
-                message:"Student is not exist",  
-                data:null,             
-                status:false
-            };
-          return  response.status(400).send(deletedFailed);  
-        }else{
-            const deletedSuccess = {
-                message:"Student deleted successfully.", 
-                data:deletedStudent,
-                status:true
-            };
-            response.send(deletedSuccess);  
-        }             
-    }catch(error){
-        const deletedFailed = {
-            message:error.message,  
-            data:null,             
-            status:false
-        };
-        response.status(500).send(deletedFailed);   
+StudentRouter.delete("/deleteStudent/:id", async (request, response) => {
+  try {
+    const id = request.params.id;
+    console.log("Postman Data==>", id);
+    const deletedStudent = await StudentScheema.findByIdAndDelete(id);
+    if (!id || deletedStudent === null) {
+      const deletedFailed = {
+        message: "Student is not exist",
+        data: null,
+        status: false,
+      };
+      return response.status(400).send(deletedFailed);
+    } else {
+      const deletedSuccess = {
+        message: "Student deleted successfully.",
+        data: deletedStudent,
+        status: true,
+      };
+      response.send(deletedSuccess);
     }
+  } catch (error) {
+    const deletedFailed = {
+      message: error.message,
+      data: null,
+      status: false,
+    };
+    response.status(500).send(deletedFailed);
+  }
 });
 
-StudentRouter.put('/updateStudent/:id',async(request,response)=>{
-    try{
-        const id  = request.params.id;
-        console.log("Postman Data==>",id,request.body);
-        const updateStudent = await StudentScheema.findByIdAndUpdate(id,request.body,{
-            new: true
-        });       
-        if(!id || updateStudent === null ){
-            const updateFailed = {
-                message:"Student not exit.", 
-                data:null,
-                status:false
-            }
+StudentRouter.put("/updateStudent/:id", async (request, response) => {
+  try {
+    const id = request.params.id;
+    console.log("Postman Data==>", id, request.body);
+    const updateStudent = await StudentScheema.findByIdAndUpdate(
+      id,
+      request.body,
+      {
+        new: true,
+      }
+    );
+    if (!id || updateStudent === null) {
+      const updateFailed = {
+        message: "Student not exit.",
+        data: null,
+        status: false,
+      };
 
-          return  response.status(404).send(updateFailed);  
-        }else{
-            const updateSuccess = {
-                message:"Student updated successfully.", 
-                data:updateStudent,
-                status:true
-            }
+      return response.status(404).send(updateFailed);
+    } else {
+      const updateSuccess = {
+        message: "Student updated successfully.",
+        data: updateStudent,
+        status: true,
+      };
 
-            response.send(updateSuccess);  
-        }             
-    }catch(error){
-        const updateFailed = {
-            message:error.message, 
-            data:null,
-            status:false
-        }
-        response.status(500).send(updateFailed);   
+      response.send(updateSuccess);
     }
+  } catch (error) {
+    const updateFailed = {
+      message: error.message,
+      data: null,
+      status: false,
+    };
+    response.status(500).send(updateFailed);
+  }
 });
 
 module.exports = StudentRouter;
