@@ -15,27 +15,29 @@ StudentRouter.post("/signin", async (request, response) => {
       // password: password,
     });
 
-    var data = {
-      email: loginData.email,
-      name: loginData.name,
-      age: loginData.age,
-      phone: loginData.phone,
-      _id: loginData._id,
-    };
-
-    await authToken.genrateAuthToken(loginData._id, async (data) => {
-      token = data;
-    });
-
-    const successReponse = {
-      message: "Login successful",
-      data: { ...data, token },
-      status: true,
-    };
-
-    console.log("------------------loginData", successReponse);
+    // console.log("------------------email", email);
+    console.log("loginData-----", loginData);
 
     if (loginData) {
+      var data = {
+        email: loginData.email,
+        name: loginData.name,
+        age: loginData.age,
+        phone: loginData.phone,
+        _id: loginData._id,
+      };
+      await authToken.genrateAuthToken(loginData._id, async (data) => {
+        token = data;
+      });
+
+      const successReponse = {
+        message: "Login successful",
+        data: { ...data, token },
+        status: true,
+      };
+
+      console.log("------------------loginData", successReponse);
+
       response.status(200).json(successReponse);
     } else {
       response.status(401).json({
