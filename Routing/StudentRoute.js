@@ -148,6 +148,35 @@ StudentRouter.get("/getAllStudents", async (request, response) => {
     response.status(400).send(getAllStudentsFailed);
   }
 });
+StudentRouter.post("/getStudentById", async (request, response) => {
+  try {
+    console.log("Postman Data==>", request.body);
+    const _id = request.body._id;
+
+    const oneStudent = await StudentScheema.findOne({ _id });
+
+    console.log("Postman Data==>", oneStudent);
+    if (!_id || oneStudent === null) {
+      return response.status(404).send({
+        message: "Student not exist.",
+        data: null,
+        status: false,
+      });
+    } else {
+      response.send({
+        message: "Student fetched successfully.",
+        data: oneStudent,
+        status: true,
+      });
+    }
+  } catch (error) {
+    response.status(500).send({
+      message: error.message,
+      data: null,
+      status: false,
+    });
+  }
+});
 StudentRouter.delete("/deleteStudent/:id", async (request, response) => {
   try {
     const id = request.params.id;
