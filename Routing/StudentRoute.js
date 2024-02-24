@@ -63,48 +63,57 @@ StudentRouter.post("/signup", async (request, response) => {
       name: request.body.name,
       email: request.body.email,
       phone: request.body.phone,
+      password: request.body.password,
       age: request.body.age,
     });
+    console.log("newStudent---------", newStudent);
 
-    var createdStudent = await newStudent.save();
-    var token = "";
-    var data = {
-      email: createdStudent.email,
-      name: createdStudent.name,
-      age: createdStudent.age,
-      phone: createdStudent.phone,
-      _id: createdStudent._id,
-    };
+    if (!request.body.password) {
+      response.status(400).send({
+        message: "Invalid password",
+        data: [],
+        status: false,
+      });
+    } else if (request.body.email.includes("@yop")) {
+      response.status(400).send({
+        message: "Invalid email",
+        data: [],
+        status: false,
+      });
+    } else {
+      var createdStudent = await newStudent.save();
+      var token = "";
+      var data = {
+        email: createdStudent.email,
+        name: createdStudent.name,
+        age: createdStudent.age,
+        phone: createdStudent.phone,
+        password: createdStudent.password,
+        _id: createdStudent._id,
+      };
 
-    authToken.genrateAuthToken(createdStudent._id, async (data) => {
-      token = data;
-      console.log("------------------data", data);
-    });
+      authToken.genrateAuthToken(createdStudent._id, async (data) => {
+        token = data;
+      });
 
-    console.log("------------------createdStudent", data);
+      console.log("------------------createdStudent", data);
 
-    var createdSuccess = {
-      message: "Signup successfully",
-      data: Object.assign(data, { token: token }),
-      status: true,
-    };
+      var createdSuccess = {
+        message: "Signup successfully",
+        data: Object.assign(data, { token: token }),
+        status: true,
+      };
 
-    response.status(201).send(createdSuccess);
+      response.status(201).send(createdSuccess);
+    }
   } catch (error) {
-    const data = {
-      code: error.code,
-      message: error.message,
-    };
-    console.log("error==>", data);
-    const createdFailed = {
+    console.log("error==>", error);
+    response.status(400).send({
       message:
-        error.code == "11000"
-          ? "email or phone is already exist"
-          : error.message,
+        error.code == "11000" ? "Email or phone already exist" : error.message,
       data: [],
       status: false,
-    };
-    response.status(400).send(createdFailed);
+    });
   }
 });
 
