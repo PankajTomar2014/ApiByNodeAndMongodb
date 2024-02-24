@@ -8,20 +8,35 @@ const StudentRouter = express.Router();
 StudentRouter.post("/signin", async (request, response) => {
   try {
     const { email, password } = request.body;
-    console.log("------------------request", request.body);
-
+    // console.log("------------------request", request.body);
+    var token = "null";
     const loginData = await StudentScheema.findOne({
       email,
       // password: password,
     });
-    console.log("------------------loginData", loginData);
+
+    var data = {
+      email: loginData.email,
+      name: loginData.name,
+      age: loginData.age,
+      phone: loginData.phone,
+      _id: loginData._id,
+    };
+
+    await authToken.genrateAuthToken(loginData._id, async (data) => {
+      token = data;
+    });
+
+    const successReponse = {
+      message: "Login successful",
+      data: { ...data, token },
+      status: true,
+    };
+
+    console.log("------------------loginData", successReponse);
 
     if (loginData) {
-      response.status(200).json({
-        message: "Login successful",
-        data: loginData,
-        status: true,
-      });
+      response.status(200).json(successReponse);
     } else {
       response.status(401).json({
         message: "Invalid credentials",
@@ -39,29 +54,6 @@ StudentRouter.post("/signin", async (request, response) => {
     response.status(500).json(createdFailed);
   }
 });
-// StudentRouter.post("/signin", async (request, response) => {
-//   try {
-//     const { email, password } = request.body;
-//     console.log("------------------request", request.body);
-//     const loginData = await StudentScheema.findOne({
-//       email: email,
-//       password: password,
-//     });
-//     console.log("------------------loginData", loginData);
-//   } catch (error) {
-//     const data = {
-//       // code: error.code,
-//       message: error.message,
-//     };
-//     console.log("error==>", error.message);
-//     const createdFailed = {
-//       message: error.message,
-//       data: [],
-//       status: false,
-//     };
-//     response.status(400).send(createdFailed);
-//   }
-// });
 
 StudentRouter.post("/signup", async (request, response) => {
   try {
