@@ -5,6 +5,46 @@ const StudentScheema = require("../Modals/StudentScheema");
 
 const StudentRouter = express.Router();
 
+StudentRouter.post("/searchStudentByName", async (request, response) => {
+  try {
+    const { name } = request.body;
+    console.log("------------------request", name);
+
+    const studentName = await StudentScheema.find({ name: name });
+
+    console.log("studentName-----", studentName);
+
+    if (studentName.length > 0) {
+      console.log("---------ifffff", studentName);
+      const successReponse = {
+        message: "Name matched found successful",
+        dataLength: studentName.length,
+        data: studentName,
+        status: true,
+      };
+
+      console.log("------------------loginData", successReponse);
+
+      response.status(200).json(successReponse);
+    } else {
+      console.log("---------error", studentName);
+      response.status(401).json({
+        message: "Name not matched with anyone",
+        status: false,
+      });
+    }
+  } catch (error) {
+    console.error("Error during login:", error);
+
+    const createdFailed = {
+      message: "Internal server error",
+      data: [],
+      status: false,
+    };
+    response.status(500).json(createdFailed);
+  }
+});
+
 StudentRouter.post("/signin", async (request, response) => {
   try {
     const { email, password } = request.body;
