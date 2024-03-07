@@ -67,6 +67,6 @@ const studentScheema = new mongoose.Schema({
 
 // we will create a new collection
 
-const StudentScheema = new mongoose.model("Student", studentScheema);
+const modalStudent = new mongoose.model("Student", studentScheema);
 
-module.exports = StudentScheema;
+module.exports = modalStudent;
