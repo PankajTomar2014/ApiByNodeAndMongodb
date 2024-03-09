@@ -4,22 +4,41 @@ const StudentScheema = require("../modals/StudentScheema");
 
 const chatRouter = express.Router();
 
-chatRouter.get("/chatStudentById", async (req, res) => {
+chatRouter.post("/send", async (req, res) => {
   try {
-    ChatScheema.find({ users: { $elemMatch: { $eq: req.body._id } } })
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password")
-      .populate("latestMessage")
-      .sort({ updatedAt: -1 })
-      .then(async (results) => {
-        results = await StudentScheema.populate(results, {
-          path: "latestMessage.sender",
-          select: "name pic email",
-        });
-        res.status(200).send(results);
-      });
+    const { message, sender, timestamp } = req.body;
+    const newMessage = new ChatScheema({ message, timestamp, sender });
+    await newMessage.save();
+
+    res.status(201).json({
+      message: "message send successfully",
+      status: true,
+      data: newMessage,
+    });
   } catch (error) {
-    res.status(400);
-    throw new Error(error.message);
+    console.log("error-----", error.message);
+    res.status(500).json({
+      message: "Internal Server Error",
+      status: false,
+      data: null,
+    });
   }
 });
+chatRouter.get("/get", async (req, res) => {
+  try {
+    const messages = await ChatScheema.find().sort({ createdAt: "asc" });
+    res.json({
+      message: "Chat fetched successfully",
+      status: true,
+      data: messages,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Internal Server Error",
+      status: false,
+      data: null,
+    });
+  }
+});
+
+module.exports = chatRouter;

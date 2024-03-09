@@ -34,10 +34,12 @@ const studentScheema = new mongoose.Schema({
     required: true,
     minlength: 8,
   },
-  // token:{
-  //     type:String,
-  //     required:true,
-  // }
+  profileImage: {
+    type: String,
+    // default: null,
+    default:
+      "https://surgassociates.com/wp-content/uploads/610-6104451_image-placeholder-png-user-profile-placeholder-image-png-600x629.jpg",
+  },
 });
 
 // genrating token
