@@ -15,10 +15,20 @@ const StudentRouter = require("./Routing/StudentRoute");
 const ChatRouter = require("./Routing/ChatRouting");
 
 io.on("connection", (socket) => {
-  console.log("Socket connected".green.bold);
+  console.log("Socket connected".green.bold, socket.id);
+
+  // io.emit("welcome", "welcome to the server");
+  // socket.broadcast.emit("welcome", socket.id + "joined to the server");
+
+  socket.on("send_message", ({ roomId, message }) => {
+    console.log("send_message---", { roomId, message });
+    // io.emit("receive_message", data);
+    // socket.broadcast.emit("receive_message", data);
+    socket.to(roomId).emit("receive_message", { roomId, message });
+  });
 
   socket.on("disconnect", () => {
-    console.log("Socket disconnected".green.bold);
+    console.log("Socket disconnected".green.bold, socket.id);
   });
 });
 
